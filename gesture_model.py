@@ -45,10 +45,15 @@ class Model:
             self.model_path, verbose=0, save_weights_only=False
         )
         es_callback = tf.keras.callbacks.EarlyStopping(patience=20, verbose=1)
+        model.compile(
+            optimizer="adam",
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
         model.fit(
             X_train,
             y_train,
-            epochs=10,
+            epochs=1000,
             batch_size=64,
             validation_data=(X_test, y_test),
             callbacks=[cp_callback, es_callback],

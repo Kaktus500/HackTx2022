@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from inspect import getsourcefile
 from gesture_model import Model
+from time import sleep
 
 date = datetime.now().isoformat()
 
@@ -24,8 +25,30 @@ data_path = os.path.join(
 encoder_path = os.path.join(basePath, "le.obj")
 
 cam = cameraInput(csv_path=data_path)
-cam.capture_demo()
+print("Show the gesture in")
+sleep(1)
+print("3")
+sleep(1)
+print("2")
+sleep(1)
+print("1")
+sleep(1)
+print("Press q when finished")
+cam.capture_demo(label="1")
 cam.process_capture()
+print("Capture finished")
+print("Showcase a baseline movement")
+sleep(1)
+print("3")
+sleep(1)
+print("2")
+sleep(1)
+print("1")
+sleep(1)
+print("Press q when finished")
+cam.capture_demo(label="d")
+cam.process_capture()
+print("Capture finished")
 model = Model(model_path, encoder_path)
-model.load_model()
+model.train_model(data_path=data_path)
 cam.infer_gesture(model)

@@ -8,6 +8,8 @@ import copy
 import numpy as np
 import itertools
 import csv
+import win32gui
+import win32con
 
 
 class cameraInput:
@@ -20,6 +22,7 @@ class cameraInput:
         self.csv_path = csv_path
 
     def infer_gesture(self, model):
+        cool_down_timer = 10
         self.capture.clear()
         cap = cv2.VideoCapture(0)
         with self.mp_hands.Hands(
@@ -43,10 +46,18 @@ class cameraInput:
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 if results.multi_hand_landmarks is not None:
-                    prediction = model.single_prediction(
-                        self.process_image(image, results)
-                    )
-                    print(chr(prediction))
+                    inputs = self.process_image(image, results)
+                    if inputs is not list:
+                        inputs = [inputs]
+                    for input in inputs:
+                        prediction = model.single_prediction(input)
+                        print(chr(prediction))
+                        if chr(prediction) == "1" and cool_down_timer <= 0:
+                            Minimize = win32gui.GetForegroundWindow()
+                            win32gui.ShowWindow(Minimize, win32con.SW_MINIMIZE)
+                            cool_down_timer = 10
+                        else:
+                            cool_down_timer -= 1
                 if results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
                         self.mp_drawing.draw_landmarks(
@@ -63,9 +74,8 @@ class cameraInput:
         cap.release()
         cv2.destroyAllWindows()
 
-    def capture_demo(self):
+    def capture_demo(self, label=None):
         self.capture.clear()
-        open(self.csv_path, "w").close()
         cap = cv2.VideoCapture(0)
         t = Thread(target=self.capture_label)
         started = False
@@ -94,7 +104,15 @@ class cameraInput:
                 # Draw the hand annotations on the image.
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                if self.label and (self.label != "p"):
+                if label is not None:
+                    self.capture.append(
+                        {
+                            "img": image,
+                            "key_points": results,
+                            "label": ord(label),
+                        }
+                    )
+                elif self.label and (self.label != "p"):
                     if results.multi_hand_landmarks is not None:
                         self.capture.append(
                             {
@@ -246,5 +264,6 @@ class cameraInput:
             writer.writerow([number, *landmark_list])
         return
 
-    def store_capture(self):
-        pass
+    def __del__(self):
+        open(self.csv_path, "w").close()
+        print("Demonstrations deleted")
