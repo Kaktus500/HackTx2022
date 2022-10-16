@@ -18,11 +18,54 @@ class cameraInput:
         self.mp_hands = mp.solutions.hands
         self.label = None
         self.csv_path = csv_path
-        open(csv_path, "w").close()
-        pass
 
-    def capture_video(self):
+    def infer_gesture(self, model):
         self.capture.clear()
+        cap = cv2.VideoCapture(0)
+        with self.mp_hands.Hands(
+            model_complexity=0,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+        ) as hands:
+            while cap.isOpened():
+                success, image = cap.read()
+                if not success:
+                    print("Ignoring empty camera frame.")
+                    # If loading a video, use 'break' instead of 'continue'.
+                    continue
+                # To improve performance, optionally mark the image as not writeable to
+                # pass by reference.
+                image.flags.writeable = False
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                results = hands.process(image)
+
+                # Draw the hand annotations on the image.
+                image.flags.writeable = True
+                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                if results.multi_hand_landmarks is not None:
+                    prediction = model.single_prediction(
+                        self.process_image(image, results)
+                    )
+                    print(chr(prediction))
+                if results.multi_hand_landmarks:
+                    for hand_landmarks in results.multi_hand_landmarks:
+                        self.mp_drawing.draw_landmarks(
+                            image,
+                            hand_landmarks,
+                            self.mp_hands.HAND_CONNECTIONS,
+                            self.mp_drawing_styles.get_default_hand_landmarks_style(),
+                            self.mp_drawing_styles.get_default_hand_connections_style(),
+                        )
+                # Flip the image horizontally for a selfie-view display.
+                cv2.imshow("MediaPipe Hands", cv2.flip(image, 1))
+                if cv2.waitKey(5) & 0xFF == ord("q"):
+                    break
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def capture_demo(self):
+        self.capture.clear()
+        open(self.csv_path, "w").close()
         cap = cv2.VideoCapture(0)
         t = Thread(target=self.capture_label)
         started = False
@@ -54,7 +97,11 @@ class cameraInput:
                 if self.label and (self.label != "p"):
                     if results.multi_hand_landmarks is not None:
                         self.capture.append(
-                            {"img": image, "key_points": results, "label": self.label}
+                            {
+                                "img": image,
+                                "key_points": results,
+                                "label": ord(self.label),
+                            }
                         )
                 if results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
@@ -78,6 +125,16 @@ class cameraInput:
             self.label = label
             print(self.label)
             sleep(0.2)
+
+    def process_image(self, img, result):
+        for hand_landmarks in result.multi_hand_landmarks:
+            # Bounding box calculation
+            brect = self.calc_bounding_rect(img, hand_landmarks)
+            # Landmark calculation
+            landmark_list = self.calc_landmark_list(img, hand_landmarks)
+            # Conversion to relative coordinates / normalized coordinates
+            pre_processed_landmark_list = self.pre_process_landmark(landmark_list)
+            return pre_processed_landmark_list
 
     def process_capture(self):
         for frame in self.capture:
