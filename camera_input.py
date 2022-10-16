@@ -1,26 +1,34 @@
+from tkinter.tix import Tree
 import cv2
 import mediapipe as mp
 import keyboard
+from threading import Thread, Event
+from time import sleep
 
 class cameraInput():
     
     def __init__(self) -> None:
-        self.video = []
+        self.capture = []
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_hands = mp.solutions.hands
+        self.label = None
         pass
 
     def capture_video(self):
-        self.video.clear()
+        self.capture.clear()
         cap = cv2.VideoCapture(0)
+        t = Thread(target=self.capture_label)
+        started = False
+        self.label = None
         with self.mp_hands.Hands(
             model_complexity=0,
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5) as hands:
           while cap.isOpened():
-            key = keyboard.read_key()
-            print(key)
+            if not started:
+                t.start()
+                started = True
             success, image = cap.read()
             if not success:
               print("Ignoring empty camera frame.")
@@ -36,7 +44,8 @@ class cameraInput():
             # Draw the hand annotations on the image.
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            self.video.append((image, results))
+            if self.label:
+                self.capture.append({'img': image, 'key_points': results, 'label': self.label})
             if results.multi_hand_landmarks:
               for hand_landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(
@@ -51,7 +60,13 @@ class cameraInput():
               break
         cap.release()
         cv2.destroyAllWindows()
+        t.join()
+
+    def capture_label(self):
+        while (label := keyboard.read_key()) != "q":
+            self.label = label
+            print(self.label)
+            sleep(0.2)
 
     def store_capture(self):
-
         pass
