@@ -1,3 +1,5 @@
+import subprocess
+
 import PySimpleGUI as sg
 
 from Abilities import Abilities
@@ -71,8 +73,9 @@ class ThisIsTerrible:
 
     def update_window(self):
         sg.theme("Dark Amber")
-        layout = [[sg.Text("Nickname"), sg.Text("Process"), sg.Text("Action Performed")]]
-        layout += [[sg.Text(self.actions[action]["-NICKNAME-"]),
+        layout = [[sg.Text("ID"), sg.Text("Nickname"), sg.Text("Process"), sg.Text("Action Performed")]]
+        layout += [[sg.Text(text=action),
+                    sg.Text(self.actions[action]["-NICKNAME-"]),
                     sg.Text(self.actions[action]["-PROCESS-"]),
                     sg.Text(self.actions[action]["-ACTION-"]),
                     sg.Button(button_text="DELETE", key=action),
@@ -91,8 +94,7 @@ class ThisIsTerrible:
                 else:
                     window.close()
                     self.edit_window(-event)
-
-            if event == "BACK":
+            if event == "Back":
                 window.close()
                 self.start_window()
                 break
@@ -103,7 +105,8 @@ class ThisIsTerrible:
     def edit_window(self, key):
         before_vals = self.actions[key]
         sg.theme("Dark Amber")
-        layout = [[sg.Text("Nickname"), sg.Input(default_text=before_vals["-NICKNAME-"], key="-NICKNAME-")],
+        layout = [[sg.Text("ID"), sg.Text(text=key)],
+                  [sg.Text("Nickname"), sg.Input(default_text=before_vals["-NICKNAME-"], key="-NICKNAME-")],
                   [sg.Text("Task"), sg.Input(default_text=before_vals["-PROCESS-"], key="-PROCESS-")],
                   [sg.Radio(ability.name, "AbilityRadio", default=ability.name == before_vals["-ACTION-"])
                    for ability in Abilities],
@@ -138,19 +141,21 @@ if __name__ == '__main__':
         profile = input("What profile do you want to use, q or c to quit")
         profile = profile.strip()
         profile = profile.upper()
-        if profile[0] == 'Q':
+        if profile[0] == 'Q' or profile[0] == 'C':
             break
-        elif profile[0] == 'O' or profile[0] == 'C':
+        elif profile[0] == 'O':
             Terrible.start_window()
         elif profile.isnumeric():
             option = int(profile)
             if option in Terrible.actions:
+                values = Terrible.actions[option]
+                if values["-ACTION-"] == "OPEN":
+                    subprocess.Popen(values["-PROCESS-"])
                 print(Terrible.actions[int(profile)])
+
             else:
                 print("Your input was invalid")
         else:
             print("Your input was invalid")
-
-
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
