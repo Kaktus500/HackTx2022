@@ -1,11 +1,33 @@
 import subprocess
-import time
 import webbrowser
 import PySimpleGUI as sg
+from camera_input import cameraInput
+import os
+from datetime import datetime
+from inspect import getsourcefile
+from gesture_model import Model
+from time import sleep
 
 from Abilities import Abilities
 
+date = datetime.now().isoformat()
 
+basePath = os.path.dirname(os.path.abspath(getsourcefile(lambda: 0)))
+
+data_path = os.path.join(
+    basePath, "model", "keypoint_classifier", "data", "keypoint.csv"
+)
+
+model_path = os.path.join(
+    basePath, "model", "keypoint_classifier", "models", "keypoint_classifier.hdf5"
+)
+data_path = os.path.join(
+    basePath, "model", "keypoint_classifier", "data", "keypoint.csv"
+)
+encoder_path = os.path.join(basePath, "le.obj")
+
+cam = cameraInput(csv_path=data_path)
+model = Model(model_path, encoder_path)
 def print_nick_name(nickname):
     print(nickname)
 
@@ -80,10 +102,12 @@ class ThisIsTerrible:
         while counter > 0:
             window.read(timeout=10)
             counter -= 1
-            time.sleep(1)
+            sleep(1)
             window["-COUNTDOWN-"].update(counter)
         # TODO would capture right here
         window.close()
+        cam.capture_demo(label="1")
+        cam.process_capture()
         layout = [[sg.Text("Gesture successful, continue to Baseline"), sg.Button("CONTINUE"), sg.Button("Try Again")]]
         window = sg.Window("Capture Successful", layout)
         while True:
@@ -106,11 +130,15 @@ class ThisIsTerrible:
         while counter > 0:
             window.read(timeout=10)
             counter -= 1
-            time.sleep(1)
+            sleep(1)
             window["-COUNTDOWN-"].update(counter)
 
         # TODO would capture right here
         window.close()
+        cam.capture_demo(label="d")
+        cam.process_capture()
+        model.train_model(data_path=data_path)
+
         layout = [
             [sg.Text("Baseline successful, continue to start screen"), sg.Button("CONTINUE"), sg.Button("Try Again")]]
         window = sg.Window("Capture Successful", layout)
@@ -192,6 +220,7 @@ class ThisIsTerrible:
 if __name__ == '__main__':
     Terrible = ThisIsTerrible()
     Terrible.start_window()
+    cam.infer_gesture(model, Terrible.actions[1])
     while True:
         profile = input("What profile do you want to use, q or c to quit, o to open the GUI")
         profile = profile.strip()

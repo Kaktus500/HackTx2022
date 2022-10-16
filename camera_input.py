@@ -1,3 +1,4 @@
+import webbrowser
 from tkinter.tix import Tree
 import cv2
 import mediapipe as mp
@@ -8,8 +9,9 @@ import copy
 import numpy as np
 import itertools
 import csv
-import win32gui
-import win32con
+import subprocess
+# import win32gui
+# import win32con
 
 
 class cameraInput:
@@ -21,7 +23,7 @@ class cameraInput:
         self.label = None
         self.csv_path = csv_path
 
-    def infer_gesture(self, model):
+    def infer_gesture(self, model, task):
         cool_down_timer = 10
         self.capture.clear()
         cap = cv2.VideoCapture(0)
@@ -53,8 +55,14 @@ class cameraInput:
                         prediction = model.single_prediction(input)
                         print(chr(prediction))
                         if chr(prediction) == "1" and cool_down_timer <= 0:
-                            Minimize = win32gui.GetForegroundWindow()
-                            win32gui.ShowWindow(Minimize, win32con.SW_MINIMIZE)
+                            # Minimize = win32gui.GetForegroundWindow()
+                            # win32gui.ShowWindow(Minimize, win32con.SW_MINIMIZE)
+                            # webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+
+                            if task["-ACTION-"] == "OPEN":
+                                subprocess.Popen(task["-PROCESS-"])
+                            if task["-ACTION-"] == "OPEN_WEBSITE":
+                                webbrowser.open(task["-PROCESS-"])
                             cool_down_timer = 10
                         else:
                             cool_down_timer -= 1
