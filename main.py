@@ -45,7 +45,7 @@ class ThisIsTerrible:
     def training_window(self):
         sg.theme("Dark Amber")
         layout = [[sg.Text("Nickname"), sg.Input(key="-NICKNAME-")],
-                  [sg.Text("Process Name"), sg.Input(key="-PROCESS-")],
+                  [sg.Text("Process Path"), sg.Input(key="-PROCESS-")],
                   [sg.Radio(ability.name, "AbilityRadio")
                    for ability in Abilities],
                   [sg.Button("Start"), sg.Button("Exit")]]
@@ -134,5 +134,23 @@ class ThisIsTerrible:
 if __name__ == '__main__':
     Terrible = ThisIsTerrible()
     Terrible.start_window()
+    while True:
+        profile = input("What profile do you want to use, q or c to quit")
+        profile = profile.strip()
+        profile = profile.upper()
+        if profile[0] == 'Q':
+            break
+        elif profile[0] == 'O' or profile[0] == 'C':
+            Terrible.start_window()
+        elif profile.isnumeric():
+            option = int(profile)
+            if option in Terrible.actions:
+                print(Terrible.actions[int(profile)])
+            else:
+                print("Your input was invalid")
+        else:
+            print("Your input was invalid")
+
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
