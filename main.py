@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 import PySimpleGUI as sg
 
@@ -65,9 +66,63 @@ class ThisIsTerrible:
                 self.start += 1
                 print_nick_name(values["-NICKNAME-"])
                 print_task(values["-PROCESS-"])
-                self.start_window()
+                self.capture_window()
                 break
             if event in (sg.WIN_CLOSED, 'Exit'):
+                break
+        window.close()
+
+    def capture_window(self):
+        sg.theme("Dark Amber")
+        counter = 3
+        layout = [[sg.Text("Show Gesture in "), sg.Text(counter, key="-COUNTDOWN-")]]
+        window = sg.Window("Capture Data", layout)
+        while counter > 0:
+            window.read(timeout=10)
+            counter -= 1
+            time.sleep(1)
+            window["-COUNTDOWN-"].update(counter)
+        # TODO would capture right here
+        window.close()
+        layout = [[sg.Text("Gesture successful, continue to Baseline"), sg.Button("CONTINUE"), sg.Button("Try Again")]]
+        window = sg.Window("Capture Successful", layout)
+        while True:
+            event, values = window.read()
+            if event == "Try Again":
+                window.close()
+                self.capture_window()
+            if event == "CONTINUE":
+                window.close()
+                self.baseline_window()
+            elif event == sg.WIN_CLOSED:
+                break
+        window.close()
+
+    def baseline_window(self):
+        sg.theme("Dark Amber")
+        counter = 3
+        layout = [[sg.Text("Show Baseline gesture in "), sg.Text(counter, key="-COUNTDOWN-")]]
+        window = sg.Window("Capture Data", layout)
+        while counter > 0:
+            window.read(timeout=10)
+            counter -= 1
+            time.sleep(1)
+            window["-COUNTDOWN-"].update(counter)
+
+        # TODO would capture right here
+        window.close()
+        layout = [
+            [sg.Text("Baseline successful, continue to start screen"), sg.Button("CONTINUE"), sg.Button("Try Again")]]
+        window = sg.Window("Capture Successful", layout)
+        while True:
+            event, values = window.read()
+            if event == "Try Again":
+                window.close()
+                self.baseline_window()
+            if event == "CONTINUE":
+                window.close()
+                self.start_window()
+            elif event == sg.WIN_CLOSED:
                 break
         window.close()
 
@@ -82,7 +137,7 @@ class ThisIsTerrible:
                     sg.Button(button_text="Edit", key=-action)]
                    for action in self.actions]
         layout += [[sg.Button("Back"), sg.Button("Exit")]]
-        window = sg.Window("Training", layout)
+        window = sg.Window("View", layout)
         while True:
             event, values = window.read()
             if type(event) == int:
@@ -138,7 +193,7 @@ if __name__ == '__main__':
     Terrible = ThisIsTerrible()
     Terrible.start_window()
     while True:
-        profile = input("What profile do you want to use, q or c to quit")
+        profile = input("What profile do you want to use, q or c to quit, o to open the GUI")
         profile = profile.strip()
         profile = profile.upper()
         if profile[0] == 'Q' or profile[0] == 'C':
@@ -148,9 +203,9 @@ if __name__ == '__main__':
         elif profile.isnumeric():
             option = int(profile)
             if option in Terrible.actions:
-                values = Terrible.actions[option]
-                if values["-ACTION-"] == "OPEN":
-                    subprocess.Popen(values["-PROCESS-"])
+                option_vals = Terrible.actions[option]
+                if option_vals["-ACTION-"] == "OPEN":
+                    subprocess.Popen(option_vals["-PROCESS-"])
                 print(Terrible.actions[int(profile)])
 
             else:
