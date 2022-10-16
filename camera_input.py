@@ -1,17 +1,15 @@
-import webbrowser
-from tkinter.tix import Tree
-import cv2
-import mediapipe as mp
-import keyboard
-from threading import Thread, Event
-from time import sleep
 import copy
-import numpy as np
-import itertools
 import csv
+import itertools
 import subprocess
-# import win32gui
-# import win32con
+import webbrowser
+from threading import Thread
+from time import sleep
+
+import cv2
+import keyboard
+import mediapipe as mp
+import numpy as np
 
 
 class cameraInput:
@@ -28,9 +26,9 @@ class cameraInput:
         self.capture.clear()
         cap = cv2.VideoCapture(0)
         with self.mp_hands.Hands(
-            model_complexity=0,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
+                model_complexity=0,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5,
         ) as hands:
             while cap.isOpened():
                 success, image = cap.read()
@@ -89,9 +87,9 @@ class cameraInput:
         started = False
         self.label = None
         with self.mp_hands.Hands(
-            model_complexity=0,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
+                model_complexity=0,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5,
         ) as hands:
             while cap.isOpened():
                 if not started:
@@ -168,7 +166,7 @@ class cameraInput:
             if results.multi_hand_landmarks is not None:
                 debug_image = copy.deepcopy(frame["img"])
                 for hand_landmarks, handedness in zip(
-                    results.multi_hand_landmarks, results.multi_handedness
+                        results.multi_hand_landmarks, results.multi_handedness
                 ):
                     # Bounding box calculation
                     brect = self.calc_bounding_rect(debug_image, hand_landmarks)
@@ -255,11 +253,11 @@ class cameraInput:
                 base_x, base_y = point[0], point[1]
 
             temp_point_history[index][0] = (
-                temp_point_history[index][0] - base_x
-            ) / image_width
+                                                   temp_point_history[index][0] - base_x
+                                           ) / image_width
             temp_point_history[index][1] = (
-                temp_point_history[index][1] - base_y
-            ) / image_height
+                                                   temp_point_history[index][1] - base_y
+                                           ) / image_height
 
         # Convert to a one-dimensional list
         temp_point_history = list(itertools.chain.from_iterable(temp_point_history))
