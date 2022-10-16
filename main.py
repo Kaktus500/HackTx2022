@@ -1,6 +1,6 @@
 import subprocess
 import time
-
+import webbrowser
 import PySimpleGUI as sg
 
 from Abilities import Abilities
@@ -15,9 +15,9 @@ def print_task(task):
 
 
 def find_val(values):
-    for i in range(4):
-        if values[i] is True:
-            return i
+    for data in Abilities:
+        if values[data.value] is True:
+            return data.value
 
 
 class ThisIsTerrible:
@@ -206,6 +206,8 @@ if __name__ == '__main__':
                 option_vals = Terrible.actions[option]
                 if option_vals["-ACTION-"] == "OPEN":
                     subprocess.Popen(option_vals["-PROCESS-"])
+                if option_vals["-ACTION-"] == "OPEN_WEBSITE":
+                    webbrowser.open(option_vals["-PROCESS-"])
                 print(Terrible.actions[int(profile)])
 
             else:
