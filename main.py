@@ -231,16 +231,7 @@ if __name__ == '__main__':
             Terrible.start_window()
         elif profile.isnumeric():
             option = int(profile)
-            if option in Terrible.actions:
-                option_vals = Terrible.actions[option]
-                if option_vals["-ACTION-"] == "OPEN":
-                    subprocess.Popen(option_vals["-PROCESS-"])
-                if option_vals["-ACTION-"] == "OPEN_WEBSITE":
-                    webbrowser.open(option_vals["-PROCESS-"])
-                print(Terrible.actions[int(profile)])
-
-            else:
-                print("Your input was invalid")
+            cam.infer_gesture(model, Terrible.actions[option])
         else:
             print("Your input was invalid")
 
